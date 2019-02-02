@@ -32,7 +32,7 @@ def find_start_date(arg_full_text):
 
     start_date = datetime.date(int(first_date_match[1]), month_match_index+1, 1)
 
-    print(start_date.strftime('%A d. %d/%m'))
+    print("Start date: " + start_date.strftime('%A d. %d/%m-%y'))
 
     return start_date
 
@@ -82,7 +82,11 @@ for file_index, file_name in enumerate(file_list):
             page_text = re.sub('^.vetHold.+',                        '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             page_text = re.sub('^Program',                           '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             
-            #„ -> å
+            #Correct danish charecters
+            page_text = re.sub('¾',                                  'æ', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('¿',                                  'ø', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('„',                                  'å', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            
 
             page_text = str.strip(page_text)
 
@@ -99,8 +103,9 @@ for file_index, file_name in enumerate(file_list):
     column_index = file_index + 1  # First column is the dates
     wod_sheet.col(column_index).width = excel_column_width
     for day_index, wod_entry in enumerate(wod_array):
-        wod_entry = re.sub('(?P<orig>^[ABCDE]\d*\.)', '\n\g<orig>', wod_entry, flags=(re.MULTILINE)) #Add newlines for ie. A. B. C.
-        wod_entry = re.sub('(?P<orig>^-+.*[Rr]est.*-$)', '\n\g<orig>', wod_entry, flags=(re.MULTILINE)) #Add newlines before ---- rest ---
+        wod_entry = re.sub('(?P<orig>^-+.*(rest|pause).*-$)', '\n\g<orig>\n', wod_entry, flags=(re.IGNORECASE | re.MULTILINE)) #Add newlines before ---- rest ---
+        wod_entry = re.sub('(?P<orig>(?<!\n\n)^[ABCDE]\d*\.)', '\n\g<orig>', wod_entry, flags=(re.MULTILINE)) #Add newlines for ie. A. B. C. - but not if there already is a double newline
+        
         wod_entry = str.strip(wod_entry)
         wod_sheet.write(day_index, column_index, wod_entry, excel_style)
         print("Writing the WOD to row %d column %d" %(day_index, column_index))
