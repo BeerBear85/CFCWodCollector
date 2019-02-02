@@ -103,7 +103,7 @@ for file_index, file_name in enumerate(file_list):
     column_index = file_index + 1  # First column is the dates
     wod_sheet.col(column_index).width = excel_column_width
     for day_index, wod_entry in enumerate(wod_array):
-        wod_entry = re.sub('(?P<orig>^-+.*(rest|pause).*-$)', '\n\g<orig>\n', wod_entry, flags=(re.IGNORECASE | re.MULTILINE)) #Add newlines before ---- rest ---
+        wod_entry = re.sub('(?P<orig>^-+.*(rest|pause).*-\ *$)', '\n\g<orig>\n', wod_entry, flags=(re.IGNORECASE | re.MULTILINE)) #Add newlines before ---- rest ---
         wod_entry = re.sub('(?P<orig>(?<!\n\n)^[ABCDE]\d*\.)', '\n\g<orig>', wod_entry, flags=(re.MULTILINE)) #Add newlines for ie. A. B. C. - but not if there already is a double newline
         
         wod_entry = str.strip(wod_entry)
