@@ -13,15 +13,24 @@ from pdfminer.pdfinterp import PDFResourceManager
 from pdfminer.pdfpage import PDFPage
 import io
 
-date_regex_format = '\d{1,2}\.\ (\S+)\ (\d{4})'
+date_regex_format   = '\d{1,2}\.\ (\S+)\ (\d{4})'
+date_regex_format_2 = '\d{1,2}\ (\S+)\ (\d{4})' #alternative format
 
 def find_start_date(arg_full_text):
     danish_month_list = ['januar', 'februar', 'marts', 'april', 'maj', 'juni',
                          'juli', 'august', 'september', 'oktober', 'november', 'december']
 
+    date_matches = []
     # Find list of all entries in the text that matches the general date format (two groups: mounth and year)
     date_matches = re.findall(date_regex_format, arg_full_text , flags=(re.IGNORECASE | re.MULTILINE))
     # There should be a check that the found matches are the same
+    
+    if not date_matches: #no match - try alternative format
+        date_matches = re.findall(date_regex_format_2, arg_full_text , flags=(re.IGNORECASE | re.MULTILINE))
+        
+    if not date_matches: #no match
+        print("Error: No start date found")
+        exit(-1)
 
     first_date_match = date_matches[0] # (mounth, year)
     month_match_index = 0
@@ -38,9 +47,9 @@ def find_start_date(arg_full_text):
 
 
 
-file_list = [os.path.join("input_pdfs", "WOD_kalender_febuar_2019_medlemmer.pdf"),
-             os.path.join("input_pdfs", "Stort_Hold_Febuar_2019_APP.pdf"),
-             os.path.join("input_pdfs", "Øvet_Febuar_2019_APP.pdf")
+file_list = [os.path.join("input_pdfs", "Wod_April_2019.pdf"),
+             os.path.join("input_pdfs", "Stort_Hold_April_2019.pdf"),
+             os.path.join("input_pdfs", "Øvet_April_2019.pdf")
              ]
 
 
@@ -73,14 +82,18 @@ for file_index, file_name in enumerate(file_list):
 
             #Remove unwanted text
             page_text = re.sub('Uklarheder.+Fang mig p.+$',          '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
-            page_text = re.sub('.+@crossfitcopenhagen\.dk$',         '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
-            page_text = re.sub('.+@crossfys\.dk$',                   '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
-            page_text = re.sub('.+kalender.+',                       '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('.*@crossfitcopenhagen\.dk.*',        '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('.*@crossfys\.dk.*',                  '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('.*kalender.*',                       '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('.*calendar.*',                       '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             page_text = re.sub('^Dato$',                             '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             page_text = re.sub('^Workout Of the Day$',               '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             page_text = re.sub('^StortHold.+',                       '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             page_text = re.sub('^.vetHold.+',                        '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('^.vet WOD.+',                        '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
             page_text = re.sub('^Program',                           '', page_text, flags=(re.IGNORECASE | re.MULTILINE))
+            page_text = re.sub('^\ *\d+ af \d+',                     '', page_text, flags=(re.IGNORECASE | re.MULTILINE)) #f.eks. 3 af 7
+           
             
             #Correct danish charecters
             page_text = re.sub('¾',                                  'æ', page_text, flags=(re.IGNORECASE | re.MULTILINE))
@@ -95,8 +108,11 @@ for file_index, file_name in enumerate(file_list):
     start_date = find_start_date(full_text)
 
     #Split into WOD list
-    text_with_seperaters = re.sub('.*' + date_regex_format, wod_seperator, full_text, flags=(re.IGNORECASE | re.MULTILINE))
-    text_with_seperaters = re.sub('Forkortelser', wod_seperator, text_with_seperaters, flags=(re.IGNORECASE | re.MULTILINE))
+    text_with_seperaters = re.sub('.*' + date_regex_format,     wod_seperator, full_text, flags=(re.IGNORECASE | re.MULTILINE))
+    text_with_seperaters = re.sub('.*' + date_regex_format_2,   wod_seperator, text_with_seperaters, flags=(re.IGNORECASE | re.MULTILINE))
+    text_with_seperaters = re.sub('Forkortelser',               wod_seperator, text_with_seperaters, flags=(re.IGNORECASE | re.MULTILINE))
+    text_with_seperaters = re.sub('Forkortelser|Abbreviations', wod_seperator, text_with_seperaters, flags=(re.IGNORECASE | re.MULTILINE))
+    
     wod_array = re.split(wod_seperator, text_with_seperaters)
     del wod_array[0]  # Because the PDF starts with a date, the first entry is empty
 
