@@ -47,9 +47,9 @@ def find_start_date(arg_full_text):
 
 
 
-file_list = [os.path.join("input_pdfs", "Wod_April_2019.pdf"),
-             os.path.join("input_pdfs", "Stort_Hold_April_2019.pdf"),
-             os.path.join("input_pdfs", "Øvet_April_2019.pdf")
+file_list = [os.path.join("input_pdfs", "WOD_May_2019_members.pdf"),
+             os.path.join("input_pdfs", "Stort_Hold_Maj_2019_APP.pdf"),
+             os.path.join("input_pdfs", "Øvet_Maj_2019_APP.pdf")
              ]
 
 
